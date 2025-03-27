@@ -190,6 +190,7 @@ const WelcomeScreen = () => {
                     id="adminPassword"
                     type="password"
                     placeholder="Enter admin password"
+                    autoComplete="new-password"
                     value={adminPassword}
                     onChange={(e) => setAdminPassword(e.target.value)}
                     onKeyDown={(e) => e.key === "Enter" && handleAdminAccess()}
