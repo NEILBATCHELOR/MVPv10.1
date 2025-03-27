@@ -44,332 +44,324 @@ import { NotificationProvider } from "@/context/NotificationContext";
 // Import Tempo routes
 import routes from "tempo-routes";
 
-// Import ErrorBoundary
-import ErrorBoundary from "./components/shared/ErrorBoundary/ErrorBoundary";
-
 function App() {
   return (
     <>
       {/* ActivityLogProvider temporarily disabled */}
       <NotificationProvider>
         <OnboardingProvider>
-          <ErrorBoundary>
-            <Suspense fallback={<p>Loading...</p>}>
-              {/* Tempo routes - ensure these come before other routes */}
-              {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
-              {/* Always render the main Routes - Tempo will handle its own routes */}
-              <Routes>
-                {/* ✅ Default route redirects to welcome screen */}
-                <Route path="/" element={<WelcomeScreen />} />
-                <Route index element={<WelcomeScreen />} />
-                <Route path="/unauthorized" element={<UnauthorizedPage />} />
-                <Route path="/reset-password" element={<ResetPasswordPage />} />
+          <Suspense fallback={<p>Loading...</p>}>
+            {/* Tempo routes - ensure these come before other routes */}
+            {import.meta.env.VITE_TEMPO === "true" && useRoutes(routes)}
+            {/* Always render the main Routes - Tempo will handle its own routes */}
+            <Routes>
+              {/* ✅ Default route redirects to welcome screen */}
+              <Route path="/" element={<WelcomeScreen />} />
+              <Route index element={<WelcomeScreen />} />
+              <Route path="/unauthorized" element={<UnauthorizedPage />} />
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
 
-                {/* ✅ Onboarding Routes */}
-                <Route path="/onboarding/*" element={<OnboardingFlow />} />
-                <Route path="/onboarding/home" element={<OnboardingHome />} />
+              {/* ✅ Onboarding Routes */}
+              <Route path="/onboarding/*" element={<OnboardingFlow />} />
+              <Route path="/onboarding/home" element={<OnboardingHome />} />
 
-                {/* ✅ Investor onboarding */}
+              {/* ✅ Investor onboarding */}
+              <Route path="/investor/*" element={<InvestorOnboardingFlow />} />
+
+              {/* ✅ Main Layout - Ensures Sidebar Renders Only Once */}
+              <Route element={<MainLayout />}>
                 <Route
-                  path="/investor/*"
-                  element={<InvestorOnboardingFlow />}
+                  path="dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <CapTableDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="projects"
+                  element={
+                    <ProtectedRoute>
+                      <Home />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="activity"
+                  element={
+                    <ProtectedRoute>
+                      <ActivityMonitorPage />
+                    </ProtectedRoute>
+                  }
                 />
 
-                {/* ✅ Main Layout - Ensures Sidebar Renders Only Once */}
-                <Route element={<MainLayout />}>
-                  <Route
-                    path="dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <CapTableDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="projects"
-                    element={
-                      <ProtectedRoute>
-                        <Home />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="activity"
-                    element={
-                      <ProtectedRoute>
-                        <ActivityMonitorPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* ✅ Wallet Routes */}
+                <Route
+                  path="wallet/dashboard"
+                  element={
+                    <ProtectedRoute>
+                      <WalletDashboardPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="wallet/new"
+                  element={
+                    <ProtectedRoute>
+                      <NewWalletPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="wallet/multisig"
+                  element={
+                    <ProtectedRoute>
+                      <MultiSigWalletPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="wallet/approvals"
+                  element={
+                    <ProtectedRoute>
+                      <MultiSigWalletPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="wallet/transactions"
+                  element={
+                    <ProtectedRoute>
+                      <MultiSigWalletPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="wallet/keys"
+                  element={
+                    <ProtectedRoute>
+                      <KeyManagementPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="wallet/tokens"
+                  element={
+                    <ProtectedRoute>
+                      <TokenManagementPage />
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* ✅ Wallet Routes */}
-                  <Route
-                    path="wallet/dashboard"
-                    element={
-                      <ProtectedRoute>
-                        <WalletDashboardPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="wallet/new"
-                    element={
-                      <ProtectedRoute>
-                        <NewWalletPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="wallet/multisig"
-                    element={
-                      <ProtectedRoute>
-                        <MultiSigWalletPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="wallet/approvals"
-                    element={
-                      <ProtectedRoute>
-                        <MultiSigWalletPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="wallet/transactions"
-                    element={
-                      <ProtectedRoute>
-                        <MultiSigWalletPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="wallet/keys"
-                    element={
-                      <ProtectedRoute>
-                        <KeyManagementPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="wallet/tokens"
-                    element={
-                      <ProtectedRoute>
-                        <TokenManagementPage />
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* ✅ Cap Table Routes - Protected */}
+                <Route
+                  path="captable"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="overview" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/investors"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="investors" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/subscriptions"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="subscriptions" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/allocations"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="allocations" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/distributions"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="distributions" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/compliance"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "issuer", "compliance_officer"]}
+                    >
+                      <CapTableManagerNew section="compliance" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/reports"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="reports" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/documents"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="documents" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="captable/minting"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="minting" />
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* ✅ Cap Table Routes - Protected */}
-                  <Route
-                    path="captable"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="overview" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/investors"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="investors" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/subscriptions"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="subscriptions" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/allocations"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="allocations" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/distributions"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="distributions" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/compliance"
-                    element={
-                      <ProtectedRoute
-                        allowedRoles={["admin", "issuer", "compliance_officer"]}
-                      >
-                        <CapTableManagerNew section="compliance" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/reports"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="reports" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/documents"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="documents" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="captable/minting"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="minting" />
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* ✅ Project-specific Cap Table Routes - Protected */}
+                <Route
+                  path="/projects/:projectId/captable"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId/captable/investors"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="investors" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId/captable/subscriptions"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="subscriptions" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId/captable/allocations"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="allocations" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId/captable/distributions"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="distributions" />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId/captable/minting"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <CapTableManagerNew section="minting" />
+                    </ProtectedRoute>
+                  }
+                />
 
-                  {/* ✅ Project-specific Cap Table Routes - Protected */}
-                  <Route
-                    path="/projects/:projectId/captable"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects/:projectId/captable/investors"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="investors" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects/:projectId/captable/subscriptions"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="subscriptions" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects/:projectId/captable/allocations"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="allocations" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects/:projectId/captable/distributions"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="distributions" />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects/:projectId/captable/minting"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <CapTableManagerNew section="minting" />
-                      </ProtectedRoute>
-                    }
-                  />
+                {/* ✅ Management and Reporting Routes - Protected */}
+                <Route
+                  path="rule-management"
+                  element={
+                    <ProtectedRoute
+                      allowedRoles={["admin", "compliance_officer"]}
+                    >
+                      <RuleManagementDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="role-management"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                      <RoleManagementDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="mfa-settings"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin"]}>
+                      <MFASettingsPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="account/security"
+                  element={
+                    <ProtectedRoute>
+                      <UserMFAPage />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="redemption"
+                  element={
+                    <ProtectedRoute>
+                      <RedemptionDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="investors"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <InvestorsList />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="reports"
+                  element={
+                    <ProtectedRoute>
+                      <ReportsDashboard />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId/tokens"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <TokenBuilder />
+                    </ProtectedRoute>
+                  }
+                />
+                <Route
+                  path="/projects/:projectId/token-admin"
+                  element={
+                    <ProtectedRoute allowedRoles={["admin", "issuer"]}>
+                      <TokenAdministration />
+                    </ProtectedRoute>
+                  }
+                />
+              </Route>
 
-                  {/* ✅ Management and Reporting Routes - Protected */}
-                  <Route
-                    path="rule-management"
-                    element={
-                      <ProtectedRoute
-                        allowedRoles={["admin", "compliance_officer"]}
-                      >
-                        <RuleManagementDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="role-management"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin"]}>
-                        <RoleManagementDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="mfa-settings"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin"]}>
-                        <MFASettingsPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="account/security"
-                    element={
-                      <ProtectedRoute>
-                        <UserMFAPage />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="redemption"
-                    element={
-                      <ProtectedRoute>
-                        <RedemptionDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="investors"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <InvestorsList />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="reports"
-                    element={
-                      <ProtectedRoute>
-                        <ReportsDashboard />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects/:projectId/tokens"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <TokenBuilder />
-                      </ProtectedRoute>
-                    }
-                  />
-                  <Route
-                    path="/projects/:projectId/token-admin"
-                    element={
-                      <ProtectedRoute allowedRoles={["admin", "issuer"]}>
-                        <TokenAdministration />
-                      </ProtectedRoute>
-                    }
-                  />
-                </Route>
-
-                {/* ✅ Tempo Catchall Route - ensure this comes after all other routes */}
-                {import.meta.env.VITE_TEMPO === "true" && (
-                  <Route path="/tempobook/*" />
-                )}
-              </Routes>
-            </Suspense>
-          </ErrorBoundary>
+              {/* ✅ Tempo Catchall Route - ensure this comes after all other routes */}
+              {import.meta.env.VITE_TEMPO === "true" && (
+                <Route path="/tempobook/*" />
+              )}
+            </Routes>
+          </Suspense>
         </OnboardingProvider>
       </NotificationProvider>
       {/* End of disabled ActivityLogProvider */}

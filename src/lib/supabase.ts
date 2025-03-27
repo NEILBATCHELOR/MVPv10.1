@@ -58,6 +58,7 @@ export const debugQuery = async (
     // that might not have project_id column
     if (
       projectId &&
+      projectId !== "${projectId}" && // Skip if projectId contains template literal
       tableName !== "investors" &&
       tableName !== "cap_table_investors" &&
       tableName !== "users" &&

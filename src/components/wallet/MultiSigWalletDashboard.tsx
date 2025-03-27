@@ -455,13 +455,16 @@ const MultiSigWalletDashboard: React.FC<MultiSigWalletDashboardProps> = ({
     return <LoadingState message="Loading wallet data..." />;
   }
 
-  // Render error state
+  // Skip error state rendering
   if (error) {
+    console.error("Error:", error);
     return (
-      <Alert variant="destructive">
-        <AlertCircle className="h-4 w-4" />
-        <AlertDescription>{error}</AlertDescription>
-      </Alert>
+      <div className="p-4 text-center">
+        <p>Unable to load wallet data. Please try again later.</p>
+        <Button onClick={handleRefresh} className="mt-4">
+          Retry
+        </Button>
+      </div>
     );
   }
 

@@ -50,7 +50,7 @@ const ConnectionTest = () => {
               {result.message}
               {!result.success && result.error && (
                 <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto">
-                  {JSON.stringify(result.error, null, 2)}
+                  Error details hidden
                 </pre>
               )}
             </AlertDescription>

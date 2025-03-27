@@ -1,5 +1,7 @@
-import ErrorState from "./ErrorState";
-export type { ErrorStateProps } from "./ErrorState";
+// This file is kept as a placeholder to prevent import errors
+// The ErrorState functionality has been removed
 
-export { ErrorState };
+const ErrorState = ({ children }) => children;
+
 export default ErrorState;
+export { ErrorState };

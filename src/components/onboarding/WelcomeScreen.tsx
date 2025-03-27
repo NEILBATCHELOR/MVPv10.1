@@ -26,7 +26,7 @@ const WelcomeScreen = () => {
     { name: string; path: string }[]
   >([
     { name: "Projects", path: "/projects" },
-    { name: "Token Builder", path: "/projects/${projectId}/tokens" },
+    { name: "Token Builder", path: "/projects/demo-project/tokens" },
     { name: "Investors", path: "/investors" },
     { name: "Cap Table", path: "/captable" },
     { name: "Activity Monitor", path: "/activity" },
@@ -180,14 +180,21 @@ const WelcomeScreen = () => {
               <Label htmlFor="adminPassword">Admin Password</Label>
               <div className="flex items-center">
                 <Key className="mr-2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  id="adminPassword"
-                  type="password"
-                  placeholder="Enter admin password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && handleAdminAccess()}
-                />
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleAdminAccess();
+                  }}
+                >
+                  <Input
+                    id="adminPassword"
+                    type="password"
+                    placeholder="Enter admin password"
+                    value={adminPassword}
+                    onChange={(e) => setAdminPassword(e.target.value)}
+                    onKeyDown={(e) => e.key === "Enter" && handleAdminAccess()}
+                  />
+                </form>
               </div>
               {adminError && (
                 <p className="text-sm text-red-500">{adminError}</p>
