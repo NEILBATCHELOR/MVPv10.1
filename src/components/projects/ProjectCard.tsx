@@ -15,7 +15,7 @@ import {
   DollarSign,
   Calendar,
   ArrowRight,
-  CreditCard
+  CreditCard,
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
@@ -49,7 +49,7 @@ const ProjectCard = ({
   onEdit,
   onDelete,
   onViewProject,
-  onManageSubscription
+  onManageSubscription,
 }: ProjectCardProps) => {
   // Get status badge
   const getStatusBadge = (status: string) => {
@@ -70,7 +70,12 @@ const ProjectCard = ({
   // Format date
   const formatDate = (dateString?: string) => {
     if (!dateString) return "Not set";
-    return new Date(dateString).toLocaleDateString();
+    try {
+      return new Date(dateString).toLocaleDateString();
+    } catch (error) {
+      console.error("Error formatting date:", error);
+      return "Invalid date";
+    }
   };
 
   // Add defensive checks to prevent accessing properties of undefined

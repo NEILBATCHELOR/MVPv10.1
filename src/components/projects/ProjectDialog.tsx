@@ -41,6 +41,11 @@ const projectFormSchema = z.object({
   target_raise: z.coerce.number().optional(),
   authorized_shares: z.coerce.number().optional(),
   share_price: z.coerce.number().optional(),
+  company_valuation: z.coerce.number().optional(),
+  funding_round: z.string().optional(),
+  legal_entity: z.string().optional(),
+  jurisdiction: z.string().optional(),
+  tax_id: z.string().optional(),
 });
 
 type ProjectFormValues = z.infer<typeof projectFormSchema>;
@@ -76,6 +81,11 @@ const ProjectDialog = ({
       target_raise: undefined,
       authorized_shares: undefined,
       share_price: undefined,
+      company_valuation: undefined,
+      funding_round: "",
+      legal_entity: "",
+      jurisdiction: "",
+      tax_id: "",
     },
   });
 
@@ -91,6 +101,11 @@ const ProjectDialog = ({
         target_raise: defaultValues.target_raise,
         authorized_shares: defaultValues.authorized_shares,
         share_price: defaultValues.share_price,
+        company_valuation: defaultValues.company_valuation,
+        funding_round: defaultValues.funding_round || "",
+        legal_entity: defaultValues.legal_entity || "",
+        jurisdiction: defaultValues.jurisdiction || "",
+        tax_id: defaultValues.tax_id || "",
       });
     } else if (open) {
       form.reset({
@@ -102,6 +117,11 @@ const ProjectDialog = ({
         target_raise: undefined,
         authorized_shares: undefined,
         share_price: undefined,
+        company_valuation: undefined,
+        funding_round: "",
+        legal_entity: "",
+        jurisdiction: "",
+        tax_id: "",
       });
     }
   }, [open, defaultValues, form]);
@@ -300,6 +320,81 @@ const ProjectDialog = ({
                         {...field}
                         value={field.value || ""}
                       />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="company_valuation"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Company Valuation ($)</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        placeholder="Enter company valuation"
+                        {...field}
+                        value={field.value || ""}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="funding_round"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Funding Round</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Series A" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="legal_entity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Legal Entity</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. LLC, Inc." {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="jurisdiction"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Jurisdiction</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. Delaware, US" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tax_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tax ID</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g. EIN number" {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>

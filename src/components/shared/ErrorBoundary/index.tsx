@@ -1,7 +1,4 @@
-// This file is kept as a placeholder to prevent import errors
-// The ErrorBoundary functionality has been removed
-
-const ErrorBoundary = ({ children }) => children;
+import ErrorBoundary from "./ErrorBoundary";
 
 export default ErrorBoundary;
 export { ErrorBoundary };

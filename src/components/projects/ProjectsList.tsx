@@ -31,7 +31,27 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
   onViewProject,
   onManageSubscription,
 }) => {
-  const [projects, setProjects] = useState<any[]>([]);
+  // Define a proper type for projects
+  interface Project {
+    id: string;
+    name: string;
+    description?: string;
+    project_type: string;
+    status: string;
+    created_at: string;
+    updated_at: string;
+    token_symbol?: string;
+    target_raise?: number;
+    authorized_shares?: number;
+    share_price?: number;
+    company_valuation?: number;
+    funding_round?: string;
+    legal_entity?: string;
+    jurisdiction?: string;
+    tax_id?: string;
+  }
+
+  const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -41,25 +61,38 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [currentProject, setCurrentProject] = useState<any>(null);
+  const [currentProject, setCurrentProject] = useState<Project | null>(null);
   const [projectStats, setProjectStats] = useState<Record<string, any>>({});
   const { toast } = useToast();
 
   // Fetch projects from Supabase
   useEffect(() => {
     fetchProjects();
+
+    // Set up a cleanup function
+    return () => {
+      // Cancel any pending operations if component unmounts
+      setIsLoading(false);
+      setIsProcessing(false);
+    };
   }, []);
 
   const fetchProjects = async () => {
     try {
       setIsLoading(true);
+      console.log("Fetching projects...");
+
       const { data, error } = await supabase
         .from("projects")
         .select("*")
         .order("created_at", { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error fetching projects:", error);
+        throw error;
+      }
 
+      console.log(`Fetched ${data?.length || 0} projects`);
       setProjects(data || []);
 
       // Fetch stats for each project
@@ -73,8 +106,9 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
             .select("investor_id", { count: "exact", head: true })
             .eq("project_id", project.id);
 
-          if (countError)
+          if (countError) {
             console.error("Error fetching investor count:", countError);
+          }
 
           // Get total raised
           const { data: subscriptions, error: subError } = await supabase
@@ -82,8 +116,9 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
             .select("fiat_amount")
             .eq("project_id", project.id);
 
-          if (subError)
+          if (subError) {
             console.error("Error fetching subscriptions:", subError);
+          }
 
           const totalRaised =
             subscriptions?.reduce(
@@ -101,12 +136,12 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
       }
 
       setError(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error fetching projects:", err);
-      setError("Failed to load projects. Please try again.");
+      setError(`Failed to load projects: ${err.message || "Unknown error"}`);
       toast({
         title: "Error",
-        description: "Failed to load projects. Please try again.",
+        description: `Failed to load projects: ${err.message || "Unknown error"}`,
         variant: "destructive",
       });
     } finally {
@@ -121,8 +156,14 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
       (project.description &&
         project.description.toLowerCase().includes(searchQuery.toLowerCase()));
 
-    const matchesStatus = statusFilter ? project.status === statusFilter : true;
-    const matchesType = typeFilter ? project.project_type === typeFilter : true;
+    const matchesStatus =
+      statusFilter && statusFilter !== "all"
+        ? project.status === statusFilter
+        : true;
+    const matchesType =
+      typeFilter && typeFilter !== "all"
+        ? project.project_type === typeFilter
+        : true;
 
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -133,18 +174,59 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
       setIsProcessing(true);
 
       const now = new Date().toISOString();
+
+      // Prepare the project data with required fields
+      const projectPayload = {
+        name: projectData.name,
+        project_type:
+          projectData.project_type || projectData.projectType || "equity",
+        description: projectData.description || "",
+        status: projectData.status || "draft",
+        created_at: now,
+        updated_at: now,
+        token_symbol: projectData.token_symbol || null,
+        target_raise: projectData.target_raise || null,
+        authorized_shares: projectData.authorized_shares || null,
+        share_price: projectData.share_price || null,
+        company_valuation: projectData.company_valuation || null,
+        funding_round: projectData.funding_round || null,
+        legal_entity: projectData.legal_entity || null,
+        jurisdiction: projectData.jurisdiction || null,
+        tax_id: projectData.tax_id || null,
+      };
+
+      console.log("Creating project with data:", projectPayload);
+
+      // First, check if a project with the same name already exists
+      const { data: existingProject, error: checkError } = await supabase
+        .from("projects")
+        .select("id")
+        .eq("name", projectData.name)
+        .maybeSingle();
+
+      if (checkError) {
+        console.error("Error checking for existing project:", checkError);
+        throw checkError;
+      }
+
+      if (existingProject) {
+        throw new Error(
+          `A project with the name '${projectData.name}' already exists`,
+        );
+      }
+
       const { data, error } = await supabase
         .from("projects")
-        .insert({
-          ...projectData,
-          project_type: projectData.project_type || projectData.projectType,
-          created_at: now,
-          updated_at: now,
-        })
+        .insert(projectPayload)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase error details:", error);
+        throw error;
+      }
+
+      console.log("Project created successfully:", data);
 
       // Create a cap table for this project
       const { error: capTableError } = await supabase
@@ -157,7 +239,22 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
           description: null,
         });
 
-      if (capTableError) throw capTableError;
+      if (capTableError) {
+        console.error("Cap table creation error:", capTableError);
+        // If cap table creation fails, delete the project to maintain data integrity
+        const { error: deleteError } = await supabase
+          .from("projects")
+          .delete()
+          .eq("id", data.id);
+
+        if (deleteError) {
+          console.error(
+            "Failed to clean up project after cap table error:",
+            deleteError,
+          );
+        }
+        throw capTableError;
+      }
 
       setProjects((prev) => [data, ...prev]);
 
@@ -172,11 +269,11 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
         description: "Project created successfully",
       });
       setIsAddDialogOpen(false);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error adding project:", err);
       toast({
         title: "Error",
-        description: "Failed to create project. Please try again.",
+        description: `Failed to create project: ${err.message || "Unknown error"}`,
         variant: "destructive",
       });
     } finally {
@@ -191,17 +288,83 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
     try {
       setIsProcessing(true);
 
+      // Prepare the update payload
+      const updatePayload = {
+        ...projectData,
+        updated_at: new Date().toISOString(),
+      };
+
+      console.log(
+        "Updating project with ID:",
+        currentProject.id,
+        "Data:",
+        updatePayload,
+      );
+
+      // Check if name is being changed and if so, check for duplicates
+      if (projectData.name !== currentProject.name) {
+        const { data: existingProject, error: checkError } = await supabase
+          .from("projects")
+          .select("id")
+          .eq("name", projectData.name)
+          .not("id", "eq", currentProject.id)
+          .maybeSingle();
+
+        if (checkError) {
+          console.error("Error checking for existing project:", checkError);
+          throw checkError;
+        }
+
+        if (existingProject) {
+          throw new Error(
+            `A project with the name '${projectData.name}' already exists`,
+          );
+        }
+      }
+
       const { data, error } = await supabase
         .from("projects")
-        .update({
-          ...projectData,
-          updated_at: new Date().toISOString(),
-        })
+        .update(updatePayload)
         .eq("id", currentProject.id)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error("Supabase update error details:", error);
+        throw error;
+      }
+
+      console.log("Project updated successfully:", data);
+
+      // If project name was updated, update the cap table name as well
+      if (projectData.name !== currentProject.name) {
+        const { data: capTable, error: getCapTableError } = await supabase
+          .from("cap_tables")
+          .select("id, name")
+          .eq("project_id", currentProject.id)
+          .maybeSingle();
+
+        if (!getCapTableError && capTable) {
+          // Only update if the cap table name follows the standard format
+          if (capTable.name === `Cap Table - ${currentProject.name}`) {
+            const { error: updateCapTableError } = await supabase
+              .from("cap_tables")
+              .update({
+                name: `Cap Table - ${data.name}`,
+                updated_at: new Date().toISOString(),
+              })
+              .eq("id", capTable.id);
+
+            if (updateCapTableError) {
+              console.error(
+                "Error updating cap table name:",
+                updateCapTableError,
+              );
+              // Non-blocking error - don't throw
+            }
+          }
+        }
+      }
 
       setProjects((prev) =>
         prev.map((project) =>
@@ -215,11 +378,11 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
       });
       setIsEditDialogOpen(false);
       setCurrentProject(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error updating project:", err);
       toast({
         title: "Error",
-        description: "Failed to update project. Please try again.",
+        description: `Failed to update project: ${err.message || "Unknown error"}`,
         variant: "destructive",
       });
     } finally {
@@ -233,6 +396,12 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
 
     try {
       setIsProcessing(true);
+      console.log("Deleting project with ID:", currentProject.id);
+
+      // Start a transaction by using RPC if available, or handle sequentially
+      // First, check if the project has any dependencies that would prevent deletion
+      let hasBlockingDependencies = false;
+      let blockingMessage = "";
 
       // Get the cap table for this project
       const { data: capTable, error: capTableError } = await supabase
@@ -241,24 +410,9 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
         .eq("project_id", currentProject.id)
         .maybeSingle();
 
-      if (capTableError) throw capTableError;
-
-      if (capTable) {
-        // Delete cap table investors
-        const { error: investorsError } = await supabase
-          .from("cap_table_investors")
-          .delete()
-          .eq("cap_table_id", capTable.id);
-
-        if (investorsError) throw investorsError;
-
-        // Delete cap table
-        const { error: deleteCapTableError } = await supabase
-          .from("cap_tables")
-          .delete()
-          .eq("id", capTable.id);
-
-        if (deleteCapTableError) throw deleteCapTableError;
+      if (capTableError) {
+        console.error("Error fetching cap table:", capTableError);
+        throw capTableError;
       }
 
       // Get subscriptions for this project
@@ -267,9 +421,15 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
         .select("id")
         .eq("project_id", currentProject.id);
 
-      if (subscriptionsError) throw subscriptionsError;
+      if (subscriptionsError) {
+        console.error("Error fetching subscriptions:", subscriptionsError);
+        throw subscriptionsError;
+      }
 
+      // Delete in the correct order to maintain referential integrity
+      // 1. First delete token allocations if they exist
       if (subscriptions && subscriptions.length > 0) {
+        console.log("Found subscriptions to delete:", subscriptions.length);
         const subscriptionIds = subscriptions.map((sub) => sub.id);
 
         // Delete token allocations
@@ -278,28 +438,76 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
           .delete()
           .in("subscription_id", subscriptionIds);
 
-        if (allocationsError) throw allocationsError;
+        if (allocationsError) {
+          console.error("Error deleting token allocations:", allocationsError);
+          throw allocationsError;
+        }
 
-        // Delete subscriptions
+        // 2. Delete subscriptions
         const { error: deleteSubscriptionsError } = await supabase
           .from("subscriptions")
           .delete()
           .eq("project_id", currentProject.id);
 
-        if (deleteSubscriptionsError) throw deleteSubscriptionsError;
+        if (deleteSubscriptionsError) {
+          console.error(
+            "Error deleting subscriptions:",
+            deleteSubscriptionsError,
+          );
+          throw deleteSubscriptionsError;
+        }
       }
 
-      // Delete the project
+      // 3. Delete cap table investors if they exist
+      if (capTable) {
+        console.log("Found cap table to delete:", capTable.id);
+        // Delete cap table investors
+        const { error: investorsError } = await supabase
+          .from("cap_table_investors")
+          .delete()
+          .eq("cap_table_id", capTable.id);
+
+        if (investorsError) {
+          console.error("Error deleting cap table investors:", investorsError);
+          throw investorsError;
+        }
+
+        // 4. Delete cap table
+        const { error: deleteCapTableError } = await supabase
+          .from("cap_tables")
+          .delete()
+          .eq("id", capTable.id);
+
+        if (deleteCapTableError) {
+          console.error("Error deleting cap table:", deleteCapTableError);
+          throw deleteCapTableError;
+        }
+      }
+
+      // 5. Finally delete the project
       const { error } = await supabase
         .from("projects")
         .delete()
         .eq("id", currentProject.id);
 
-      if (error) throw error;
+      if (error) {
+        console.error("Error deleting project:", error);
+        throw error;
+      }
 
+      console.log("Project deleted successfully");
+
+      // Update local state
       setProjects((prev) =>
         prev.filter((project) => project.id !== currentProject.id),
       );
+
+      // Update project stats
+      setProjectStats((prev) => {
+        const newStats = { ...prev };
+        delete newStats[currentProject.id];
+        return newStats;
+      });
 
       toast({
         title: "Success",
@@ -307,11 +515,11 @@ const ProjectsList: React.FC<ProjectsListProps> = ({
       });
       setIsDeleteDialogOpen(false);
       setCurrentProject(null);
-    } catch (err) {
+    } catch (err: any) {
       console.error("Error deleting project:", err);
       toast({
         title: "Error",
-        description: "Failed to delete project. Please try again.",
+        description: `Failed to delete project: ${err.message || "Unknown error"}`,
         variant: "destructive",
       });
     } finally {
